@@ -23,11 +23,15 @@ jobs:
         username: ${{ secrets.GHCR_USERNAME }}
         password: ${{ secrets.GHCR_TOKEN }}
 
+    - name: Convert APP_NAME to lowercase
+      id: lowercase
+      run: echo "app_name=$(echo ${{ secrets.APP_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
-        tags: ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}:latest
-        cache-from: type=registry,ref=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}:buildcache
-        cache-to: type=registry,ref=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}:buildcache,mode=max
+        tags: ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ steps.lowercase.outputs.app_name }}:latest
+        cache-from: type=registry,ref=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ steps.lowercase.outputs.app_name }}:buildcache
+        cache-to: type=registry,ref=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ steps.lowercase.outputs.app_name }}:buildcache,mode=max
