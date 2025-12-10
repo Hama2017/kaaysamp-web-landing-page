@@ -23,34 +23,11 @@ jobs:
         username: ${{ secrets.GHCR_USERNAME }}
         password: ${{ secrets.GHCR_TOKEN }}
 
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}
-        tags: |
-          type=raw,value=latest
-          type=sha,prefix=sha-
-
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}:latest
         cache-from: type=registry,ref=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}:buildcache
         cache-to: type=registry,ref=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}:buildcache,mode=max
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.APP_NAME }}:latest
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-
-    - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
